@@ -8,9 +8,15 @@ import { AuthView } from './components/AuthView';
 import { storageService } from './services/storage';
 
 function App() {
-  const [viewMode, setViewMode] = useState<ViewMode>(ViewMode.AUTH);
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem('current_logged_in_user');
+    return saved ? JSON.parse(saved) : null;
+  });
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    const saved = localStorage.getItem('current_logged_in_user');
+    return saved ? ViewMode.MEMBER : ViewMode.AUTH;
+  });
   const [targetTracks, setTargetTracks] = useState<TargetTrack[]>([]);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [spotifyId, setSpotifyId] = useState(DEFAULT_SPOTIFY_ID);
   const [weeklySchedule, setWeeklySchedule] = useState<WeeklySchedule>({});
 
@@ -62,16 +68,19 @@ function App() {
   // Auth Handlers
   const handleRegister = (newUser: User) => {
     // AuthView already handles the storageService.registerUser call
+    localStorage.setItem('current_logged_in_user', JSON.stringify(newUser));
     setCurrentUser(newUser);
     setViewMode(ViewMode.MEMBER);
   };
 
   const handleLogin = (user: User) => {
+    localStorage.setItem('current_logged_in_user', JSON.stringify(user));
     setCurrentUser(user);
     setViewMode(ViewMode.MEMBER);
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('current_logged_in_user');
     setCurrentUser(null);
     setViewMode(ViewMode.AUTH);
   };
@@ -82,6 +91,7 @@ function App() {
     
     try {
       const updatedUser = await storageService.updateUserCheckIn(currentUser.id, dateStr, usedLastFmUsername);
+      localStorage.setItem('current_logged_in_user', JSON.stringify(updatedUser));
       setCurrentUser(updatedUser);
     } catch (e) {
       console.error("Check-in failed", e);
@@ -90,6 +100,7 @@ function App() {
 
   // Handle Profile Update
   const handleUserUpdate = (updatedUser: User) => {
+    localStorage.setItem('current_logged_in_user', JSON.stringify(updatedUser));
     setCurrentUser(updatedUser);
   };
 

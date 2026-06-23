@@ -23,6 +23,23 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
   const [accountUsedError, setAccountUsedError] = useState<string | null>(null);
   const [winningAccount, setWinningAccount] = useState<string | string[]>('');
   const [showReward, setShowReward] = useState(false);
+  const [spotifyStatus, setSpotifyStatus] = useState<{id: string, isPremium: boolean} | null>(null);
+
+  useEffect(() => {
+    // Check for Spotify login result in URL
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('spotifyLogin') === 'success') {
+      const id = params.get('id') || '';
+      const isPremium = params.get('isPremium') === 'true';
+      setSpotifyStatus({ id, isPremium });
+      
+      // Clean up URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (params.get('error')) {
+      setError(`Spotify Login Error: ${params.get('error')}`);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
 
   // Profile Modal State
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -544,6 +561,29 @@ export const MemberView: React.FC<MemberViewProps> = ({ weeklySchedule, currentU
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Spotify Connection Panel */}
+      <div className="w-full mb-6 glass p-4 rounded-2xl flex flex-col gap-3 border border-white/10">
+        <h3 className="text-white font-bold text-sm">Spotify Integration</h3>
+        
+        {spotifyStatus && (
+          <div className={`p-3 rounded-lg border text-xs font-bold flex items-center justify-center gap-2 ${spotifyStatus.isPremium ? 'bg-green-900/40 border-green-500 text-green-400' : 'bg-red-900/40 border-red-500 text-red-400'}`}>
+            {spotifyStatus.isPremium ? (
+               <><CheckCircle2 size={16} /> Premium Verified ({spotifyStatus.id})</>
+            ) : (
+               <><AlertCircle size={16} /> {spotifyStatus.id} is NOT Premium</>
+            )}
+          </div>
+        )}
+        
+        <a
+          href="/api/auth/spotify/login"
+          className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all text-black bg-[#1DB954] hover:bg-[#1ed760] shadow-[0_0_15px_rgba(29,185,84,0.3)] text-sm"
+        >
+          <Music size={18} />
+          {spotifyStatus ? 'Re-check Premium Status' : 'Link Spotify (Check Premium)'}
+        </a>
       </div>
 
       <div className="w-full mb-6 glass p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 border border-white/10">

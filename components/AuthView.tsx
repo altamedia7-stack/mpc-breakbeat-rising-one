@@ -26,26 +26,11 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onRegister, onOpenA
   const [lastFmApiKey, setLastFmApiKey] = useState('');
   
   const [error, setError] = useState<string | null>(null);
-  const [spotifyStatus, setSpotifyStatus] = useState<{id: string, isPremium: boolean} | null>(null);
 
   useEffect(() => {
     const config = storageService.getCloudConfig();
     if (config && config.enabled) {
       setCloudStatus('CONNECTED');
-    }
-
-    // Check for Spotify login result in URL
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('spotifyLogin') === 'success') {
-      const id = params.get('id') || '';
-      const isPremium = params.get('isPremium') === 'true';
-      setSpotifyStatus({ id, isPremium });
-      
-      // Clean up URL
-      window.history.replaceState({}, document.title, "/");
-    } else if (params.get('error')) {
-      setError(`Spotify Login Error: ${params.get('error')}`);
-      window.history.replaceState({}, document.title, "/");
     }
   }, []);
 
@@ -110,16 +95,6 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onRegister, onOpenA
           <p className="text-xs text-gray-500 mt-2 flex items-center justify-center gap-1 opacity-70">
             <CloudOff size={12} /> Offline Mode
           </p>
-        )}
-
-        {spotifyStatus && (
-          <div className={`mt-4 p-3 rounded-lg border text-sm font-bold flex items-center justify-center gap-2 ${spotifyStatus.isPremium ? 'bg-green-900/40 border-green-500 text-green-400' : 'bg-red-900/40 border-red-500 text-red-400'}`}>
-            {spotifyStatus.isPremium ? (
-               <><CheckCircle2 size={16} /> Spotify Premium Verified ({spotifyStatus.id})</>
-            ) : (
-               <><AlertTriangle size={16} /> {spotifyStatus.id} is NOT Premium</>
-            )}
-          </div>
         )}
       </div>
 
@@ -213,16 +188,6 @@ export const AuthView: React.FC<AuthViewProps> = ({ onLogin, onRegister, onOpenA
             {isLoading ? 'Processing...' : (isRegistering ? <><ArrowRight size={20} /> Create Account</> : <><LogIn size={20} /> Login</>)}
           </button>
         </form>
-
-        <div className="mt-6">
-          <a
-            href="/api/auth/spotify/login"
-            className="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all mt-4 text-white bg-[#1DB954] hover:bg-[#1ed760] shadow-[0_0_20px_rgba(29,185,84,0.4)]"
-          >
-            <Music size={20} />
-            Login with Spotify (Check Premium)
-          </a>
-        </div>
 
         <div className="mt-6 text-center">
           <button 
