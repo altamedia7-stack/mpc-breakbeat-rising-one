@@ -1,0 +1,5 @@
+{
+  "name": "mpc-breakbeat-rising",
+  "description": "A community music streaming validation tool with Admin/Member roles, Last.fm integration, and neon glassmorphism UI.",
+  "requestFramePermissions": []
+}
