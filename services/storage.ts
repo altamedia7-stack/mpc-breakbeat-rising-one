@@ -7,6 +7,14 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export const storageService = {
   
+  // --- TIMEOUT HELPER ---
+  _withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+      return Promise.race([
+          promise,
+          new Promise<T>((_, reject) => setTimeout(() => reject(new Error('Timeout')), ms))
+      ]);
+  },
+
   // --- CONFIGURATION ---
   
   getCloudConfig(): CloudConfig | null {
@@ -34,7 +42,7 @@ export const storageService = {
     // 1. CLOUD MODE (FIREBASE)
     try {
       const docRef = doc(db, 'appData', 'main');
-      const docSnap = await getDoc(docRef);
+      const docSnap = await this._withTimeout(getDoc(docRef), 3000);
 
       if (docSnap.exists()) {
         const record = docSnap.data();
@@ -97,7 +105,7 @@ export const storageService = {
     // 1. CLOUD MODE (FIREBASE)
     try {
         const docRef = doc(db, 'appData', 'main');
-        await setDoc(docRef, data);
+        await this._withTimeout(setDoc(docRef, data), 3000);
         
         // Update local cache
         this._updateLocalCache(data);
